@@ -32,7 +32,7 @@ char String_num[];							//String array to hold an int after converting to strin
 char String_flt[];							//String array to hold a double value after converting to string
 volatile uint8_t time_ovf;					//Integer to hold the amount of times the timer overflows 
 float temperature;							//Float variable used to hold the measured analog value from the LM35DZ
-char Degrees[]="° F";						//Used to make the output temperature value readable as Fahrenheit 
+char Degrees[]="Â° F";						//Used to make the output temperature value readable as Fahrenheit 
 char CIPMUX[]="AT+CIPMUX=1";				//AT command string for the ESP8266 for setting up a Single or Multi-line IP connection (value of '0' for single)
 char CWJAP[]="AT+CWJAP=\"";					//AT command string for the ESP8266 used to scan for available access points
 char SSID[]="\Your SSID\",";				//A character array used to hold the name of the access point the user wishes to connect to
@@ -219,7 +219,10 @@ int main(void)
     {
 		
 		if(time_ovf >= 130){ //Uses increments of 4 for a timer1 overflow interrupt of roughly 1 second. (130 is roughly 33 seconds)
-					
+			
+			//Note: This portion of the code is supposed to show the temperature before sending it over the ESP
+			//however, I think it causes the ESP to send out an "Error" msg after every AT command following the
+			//initial temperature output.
 			ADC_Read(0); //Using ADC 0
 			USART_putstring(String);
 			USART_putflt(String_num, temperature);
@@ -228,12 +231,17 @@ int main(void)
 			USART_putstring(LineBreak);
 			_delay_ms(2000);
 			
+			//This portion of the loop readies the ESP to send data through it.
 			USART_putstring(CIPSTART);
 			USART_putstring(LineBreak);
 			
-			_delay_ms(10000);
+			_delay_ms(1000);
 			
-			
+			// This portion of the code is used to send the temperature data to ThingSpeak
+			//however, the ESP does not give a confirmation of the sent data unless it's
+			//sent twice.
+			//Note: If one of the TS_COMMAND blocks is removed it still sends data on the initial loop
+			//but does not give confirmation.
 			USART_putstring(CIPSEND);
 			USART_putstring(LineBreak);
 			
@@ -254,6 +262,8 @@ int main(void)
 			
 			_delay_ms(2000);
 			
+			
+			//Closes the ESP after data is sent
 			USART_putstring(CIPCLOSE);
 			USART_putstring(LineBreak);
 			
