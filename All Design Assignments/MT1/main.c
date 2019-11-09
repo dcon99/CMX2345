@@ -222,7 +222,7 @@ int main(void)
 			
 			//Note: This portion of the code is supposed to show the temperature before sending it over the ESP
 			//however, I think it causes the ESP to send out an "Error" msg after every AT command following the
-			//initial temperature output.
+			//initial temperature output. If it is removed, data is transmitted successfully.
 			ADC_Read(0); //Using ADC 0
 			USART_putstring(String);
 			USART_putflt(String_num, temperature);
